@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CarCreated;
 use App\Models\car;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class CarController extends Controller
 {
@@ -29,6 +31,29 @@ class CarController extends Controller
     public function store(Request $request)
     {
         //
+        $request->validate([
+            'model_name' => 'required|max:255',
+            'brand' => 'required|max:255',
+            'color' => 'required|max:40',
+            'year' => 'required|numeric',
+            'release_date' => 'required|date'
+        ]);
+
+        if (Car::where('brand', '=', $request->get('brand'))->exists()) {
+            return redirect()->route('carCreate');
+        }
+
+        $car = Car::create([
+            'model_name' => $request->get('model_name'),
+            'brand' => $request->get('brand'),
+            'color' => $request->get('color'),
+            'year' => $request->get('year'),
+            'release_date' => $request->get('release_date'),
+        ]);
+
+        Mail::to('damynfilipuzzi@gmail.com')->send(new CarCreated($car));
+
+        return redirect()->route('carCreate');
     }
 
     /**
